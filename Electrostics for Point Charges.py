@@ -6,9 +6,6 @@ import itertools
 from itertools import combinations
 from itertools import permutations
 
-import time
-start_time = time.time()
-
 class charge:
     def __init__(self, q, pos):
         self.q=q
@@ -211,14 +208,9 @@ for charge in charges:
     Ex += ex
     Ey += ey
 
-end_time = time.time()
-
 ############################################################################################
 "Graph the field in Matplotlib"
 ############################################################################################
-
-print(end_time - start_time)
-start_time = time.time()
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
@@ -252,7 +244,5 @@ cbar = plt.colorbar(format = '%.0e', shrink = .75)
 cbar.set_ticks(np.linspace(-n,n,10))
 cbar.set_label("Electric Potential" + " " + "(Volts)")
 ax.set_aspect('equal')
-end_time = time.time()
-print(end_time - start_time)
 plt.show()
 

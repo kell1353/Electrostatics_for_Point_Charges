@@ -4,29 +4,24 @@ import matplotlib.pyplot as plt
 import random
 import itertools
 from itertools import combinations
-from itertools import permutations
 
 class charge:
     def __init__(self, q, pos):
         self.q=q
         self.pos=pos
+        
+def calcTheta(y, x):
+    return np.degrees(np.arctan2(y, x))
 
-"Definting multiplication between two elements"
-def mult(p1, p2):
-    "Multiplication between two elements"
-    return p1*p2
-
-"Return the distance between a set of charges"
-def distance(p1,p2):
-    "Euclidean distance between two points."
-    x1,y1 = p1
-    x2,y2 = p2
-    return np.hypot(x2 - x1, y2 - y1)
-
-"Return the force created by each set of charges "
-k = 8.988 * (10**9) # In Nm^2/C^2                                                               # k is the constant in electrostatics
-def F(Q, d):                                                                                                                                        
-    return (k*Q)/d**2
+def F(q1, q2, x0, y0, x1, y1):
+    "Calculate the force vector created by each set of charges"
+    global fx; global fy
+    r = np.hypot(x1 - x0, y1 - y0)
+    f = (k * q1 * q2)/r**2
+    theta = calcTheta(y1 - y0, x1 - x0)
+    "Return the component forces created by each set of charges"
+    fx = f * cos(np.deg2rad(theta))
+    fy = f * sin(np.deg2rad(theta))
 
 def E(q, r0, x, y):
     "Return the electric field vector E=(Ex,Ey) due to charge q at r0."
@@ -38,12 +33,23 @@ def V_point_charge(q, r0, x, y):
     d = np.hypot(((x - r0[0])*10**(-2)), ((y - r0[1])*10**(-2)))
     return k*(q*10**(-6)/d)
 
+"Definting multiplication between two elements"
+def mult(p1, p2):
+    return p1*p2
+
+def distance(p1, p2):
+    "Euclidean distance between two points."
+    x1,y1 = p1
+    x2,y2 = p2
+    return np.hypot(x2 - x1, y2 - y1)
+
 
 #######################################################################################
 "End of Definitions"
 #######################################################################################
 
 "Common Variables"
+k = 8.988 * (10**9) # In Nm^2/C^2   # k is the constant in electrostatics
 sqrt = np.sqrt
 sin, cos, tan = np.sin, np.cos, np.tan
 
@@ -57,15 +63,15 @@ X, Y = np.meshgrid(x, y)
 
 options = ['M', 'D', 'Q', 'O', 'R']
 num_charges = input("What would you like to generate? Monopole (M), Dipole (D), Quadropole (Q), Octopole (O), Random (R): ")
-
 cType = num_charges.upper()
+
 if cType not in options:
     print("\nNo charges generated")
     sys.exit()
     
 "Setting charges locations and values  (rq (uC), Distance (cm) "
-########## Generate five random charges ##########
 charges = []
+# Generate random charges #
 if cType == 'R':
     totalAmt = 9
 
@@ -89,7 +95,8 @@ else:
     elif cType ==  'O': nq = 8
 
     "Create a set of alternating charges"
-    rq = round(np.random.uniform(-10, 10), 3)
+    rq = 1
+    #rq = round(np.random.uniform(-10, 10), 3)
     for i in range(nq):
         Aq = i%2 * 2 - 1
         q = Aq*rq
@@ -102,7 +109,7 @@ else:
 ##charges = [(-8.5, [.5 , .5]), (3, [0, np.sqrt(3)]), (4, [-1, .5]), (5, [1.5, -1.5])]                    # Formatted as (charge value, [x-value, y-value])
 
 
-##################################################################################################
+############################################################################################
 "Seperating the charge values, and cooridnates from the tuples"
 ############################################################################################
 
@@ -113,6 +120,7 @@ for p in charges:
     
     mu =  u"\u03bc"
     printedCharges.append(str(float(p[0])) + " " + mu + "C")
+
 
 ############################################################################################
 "Calculating the force of each charge against all other charges using Colomb's law,"
@@ -126,41 +134,26 @@ else:
         Test_Charge = []
         Test_Charge.append(i)
 
-        relative_distances = []
-        charge_multiples = []
-        thetas = []
+        Fx, Fy = 0, 0
         for j in  (set(range(len(charges)))-set(Test_Charge)):
-            # Calculate all of the component vectors
-            x_com = coordinates[i][0] - coordinates[j][0]
-            y_com =  coordinates[i][1] - coordinates[j][1] 
-
-            # Convert uC to C and cm to m to solve for Force and insert the values into seperate lists
-            relative_distances.append(np.hypot(x_com, y_com)*(10**(-2)))
-            charge_multiples.append(charge_values[i]*(10**(-6))*charge_values[j]*(10**(-6)))
-
-            # Calculate theta between the charges
-            theta = np.degrees(np.arctan2(y_com, x_com))
-            thetas.append(theta)
-            
-        Fx_forces, Fy_forces = [], []
-        for Q in range(len(charge_multiples)):
-            # Calculate the force between the charges and break it into component forces
-            Force = F((charge_multiples[Q]), (relative_distances[Q]))
-            Fx_forces.append(Force*np.cos(np.deg2rad(thetas[Q])))
-            Fy_forces.append(Force*np.sin(np.deg2rad(thetas[Q])))
+            # Convert uC to C and cm to m to solve for Force
+            F(charge_values[i]*(10**(-6)), charge_values[j]*(10**(-6)), \
+                coordinates[j][0]*(10**(-2)), coordinates[j][1]*(10**(-2)), \
+                coordinates[i][0]*(10**(-2)), coordinates[i][1]*(10**(-2)))
+            Fx += fx
+            Fy += fy
 
         # Sum the component forces and calculate the Net force on the charge
-        Fx_total = sum(Fx_forces)
-        Fy_total = sum(Fy_forces)
-        Net_force = np.hypot(Fx_total, Fy_total)
-        final_theta = np.degrees(np.arctan2(Fy_total, Fx_total))
+        Net_force = np.hypot(Fx, Fy)
+        final_theta = calcTheta(Fy, Fx)
 
         deg = u"\u00b0"
         finalString_p1 = "\nTotal Net Force on Charge" + " " + str(i+1) + " " + "is: " + " " + str("{:,}".format(round(Net_force, 1))) + " " + "N"  + " at " + str("{:,}".format(round(final_theta, 1))) + deg .ljust(20)
         finalString_p2 = ("{For charge value: " + str(printedCharges[i]) + " | " + "At coordinate point: " + str(coordinates[i]) + "}")
         print (finalString_p1 + finalString_p2)
 
-################################################################################################
+
+############################################################################################
 "Calculate and graph the Electric Potential for each point in the grid due to the sum of each charge"
 ############################################################################################
 
@@ -173,7 +166,8 @@ def V_total(x, y, charges):
 
 Z = V_total(X, Y, charges)
 
-################################################################################################
+
+############################################################################################
 "Calculate the work it takes to assemble all of the charges (The electric potential energy of the system)"
 ############################################################################################
 
@@ -198,7 +192,7 @@ else:
             
     print("\nThe electrostatic potential energy of the system is: " + str(round(Work, 2)) + " J")
 
-###############################################################################################
+############################################################################################
 "Electric field vector, E=(Ex, Ey), as separate components"
 ############################################################################################
 
@@ -219,13 +213,6 @@ ax = fig.add_subplot(111)
 color = 2 * np.log(np.hypot(Ex, Ey))
 ax.streamplot(x, y, Ex, Ey, color=color, linewidth=1, cmap=plt.cm.inferno,
               density=1.7, arrowstyle='->', arrowsize=1.0)
-
-
-"Add filled circles for the charges themselves"
-charge_colors = {True: '#aa0000', False: '#0000aa'}
-for q, pos in charges:
-    ax.add_artist(plt.Circle(pos, 0.015, color=charge_colors[q>-1]))
-
 
 "Insert the graph settings"
 Abs_charges = []

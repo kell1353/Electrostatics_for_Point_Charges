@@ -5,6 +5,7 @@ import random
 import itertools
 from itertools import combinations
 
+
 class charge:
     def __init__(self, q, pos):
         self.q=q
@@ -104,8 +105,8 @@ else:
     
 
 "Setting charges locations and values for TESTING"
+##charges = [(300, [-300, 0]), (-300, [0, 0]), (300, [300, 0])]
 ##charges = [(2, [-1, 0]), (3, [0, 0]), (1, [0, -np.sqrt(3)])]                 #potential must be 117,000 at 0 (-1, [0, np.sqrt(3)])
-##charges = [(rq, [-1, -1]), (-(rq), [1, -1]), (rq, [1, 1]), (-(rq), [-1, 1])] #Quadropole
 ##charges = [(-8.5, [.5 , .5]), (3, [0, np.sqrt(3)]), (4, [-1, .5]), (5, [1.5, -1.5])]                    # Formatted as (charge value, [x-value, y-value])
 
 
@@ -168,11 +169,11 @@ Z = V_total(X, Y, charges)
 
 
 ############################################################################################
-"Calculate the work it takes to assemble all of the charges (The electric potential energy of the system)"
+"The electric potential energy of the system"
 ############################################################################################
 
 if len(charges) == 1:
-    print("\nThere is no electrical potential energy in this system.")
+    print("\nThere is no electric potential energy in this system.")
 
 else:
     unique_distances = []
@@ -190,7 +191,7 @@ else:
             Work_Components.append((unique_charge_mult[V])/(unique_distances[V]))
             Work = k*sum(Work_Components)
             
-    print("\nThe electrostatic potential energy of the system is: " + str(round(Work, 2)) + " J")
+    print("\nThe electric potential energy of the system is: " + str(round(Work, 2)) + " J")
 
 ############################################################################################
 "Electric field vector, E=(Ex, Ey), as separate components"
@@ -232,4 +233,3 @@ cbar.set_ticks(np.linspace(-n,n,10))
 cbar.set_label("Electric Potential" + " " + "(Volts)")
 ax.set_aspect('equal')
 plt.show()
-
